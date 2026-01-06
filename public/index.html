@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wage Predictor based on EA FC 25 Rating</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --card: #121a33;
+        --text: #e9edf7;
+        --muted: #b7c0dd;
+        --accent: #7aa2ff;
+        --danger: #ff6b6b;
+        --border: rgba(255, 255, 255, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+          Arial, sans-serif;
+        background: radial-gradient(
+            1200px 800px at 20% 10%,
+            rgba(122, 162, 255, 0.25),
+            transparent 50%
+          ),
+          radial-gradient(
+            1000px 700px at 80% 30%,
+            rgba(74, 222, 128, 0.12),
+            transparent 55%
+          ),
+          var(--bg);
+        color: var(--text);
+        line-height: 1.45;
+      }
+
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 28px 18px 44px;
+      }
+
+      header h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+        letter-spacing: 0.2px;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 78ch;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      @media (min-width: 880px) {
+        .grid {
+          grid-template-columns: 1.1fr 0.9fr;
+        }
+      }
+
+      .card {
+        background: rgba(18, 26, 51, 0.92);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 10px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .row:first-of-type {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .control {
+        display: grid;
+        grid-template-columns: 1fr 120px;
+        gap: 10px;
+        align-items: center;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 10px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(10, 14, 28, 0.85);
+        color: var(--text);
+        outline: none;
+      }
+
+      input[type="number"]:focus,
+      select:focus {
+        border-color: rgba(122, 162, 255, 0.7);
+        box-shadow: 0 0 0 3px rgba(122, 162, 255, 0.18);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 11px 14px;
+        font-weight: 650;
+        cursor: pointer;
+        color: #0b1020;
+        background: var(--accent);
+      }
+
+      button.secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .error {
+        margin-top: 10px;
+        color: var(--danger);
+        font-size: 14px;
+        display: none;
+      }
+
+      .kv {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+
+      .kv td {
+        padding: 8px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        vertical-align: top;
+      }
+
+      .kv td:first-child {
+        width: 52%;
+        color: var(--muted);
+        padding-right: 10px;
+      }
+
+      .big {
+        font-size: 26px;
+        font-weight: 780;
+        margin: 6px 0 0;
+      }
+
+      .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(122, 162, 255, 0.16);
+        border: 1px solid rgba(122, 162, 255, 0.35);
+        color: var(--text);
+        font-size: 12px;
+        margin-top: 8px;
+      }
+
+      .footer-note {
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      code.inline {
+        padding: 2px 6px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <div class="wrap">
+      <header>
+        <h1>Wage Prediction Demo</h1>
+        <p>
+          This page turns a simple SAS regression into a working interface.
+          Enter player attributes and the app will compute a predicted wage in
+          euros per week.
+        </p>
+      </header>
+
+      <div class="grid">
+        <section class="card" aria-labelledby="inputsTitle">
+          <h2 id="inputsTitle">Inputs</h2>
+
+          <div class="row">
+            <div>
+              <div class="label">Age</div>
+              <div class="control">
+                <input
+                  id="ageRange"
+                  type="range"
+                  min="16"
+                  max="45"
+                  step="1"
+                  value="24"
+                />
+                <input
+                  id="ageNumber"
+                  type="number"
+                  min="16"
+                  max="45"
+                  step="1"
+                  value="24"
+                />
+              </div>
+              <div class="muted">Allowed range 16 to 45</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="label">EA FC 25 rating</div>
+              <div class="control">
+                <input
+                  id="ratingRange"
+                  type="range"
+                  min="45"
+                  max="99"
+                  step="1"
+                  value="75"
+                />
+                <input
+                  id="ratingNumber"
+                  type="number"
+                  min="45"
+                  max="99"
+                  step="1"
+                  value="75"
+                />
+              </div>
+              <div class="muted">Allowed range 45 to 99</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="label">Position</div>
+              <select id="positionSelect">
+                <option value="Midfielder">Midfielder</option>
+                <option value="Defender">Defender</option>
+                <option value="Forward">Forward</option>
+                <option value="Goalkeeper">Goalkeeper</option>
+              </select>
+              <div class="muted">
+                Midfielder is the reference level in the SAS model
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="label">Preferred foot</div>
+              <select id="footSelect">
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+              </select>
+              <div class="muted">
+                Right is the reference level in the SAS model
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="predictBtn" type="button">Predict wage</button>
+            <button id="resetBtn" type="button" class="secondary">Reset</button>
+          </div>
+
+          <div id="errorBox" class="error" role="alert"></div>
+        </section>
+
+        <aside class="card" aria-labelledby="outputTitle">
+          <h2 id="outputTitle">Prediction output</h2>
+
+          <div class="muted">
+            The model predicts <span class="pill">log wage</span> first and then
+            converts back using <span class="inline code">exp</span>.
+          </div>
+
+          <div id="emptyState" class="footer-note">
+            Click Predict wage to see results.
+          </div>
+
+          <div id="resultBlock" style="display: none">
+            <div class="big" id="wageBig">€0</div>
+            <div class="muted">Predicted wage in euros per week</div>
+
+            <table class="kv" aria-label="prediction details">
+              <tbody>
+                <tr>
+                  <td>Age</td>
+                  <td id="outAge"></td>
+                </tr>
+                <tr>
+                  <td>Overall rating</td>
+                  <td id="outRating"></td>
+                </tr>
+                <tr>
+                  <td>Position group</td>
+                  <td id="outPos"></td>
+                </tr>
+                <tr>
+                  <td>Preferred foot</td>
+                  <td id="outFoot"></td>
+                </tr>
+                <tr>
+                  <td>Predicted log wage</td>
+                  <td id="outLog"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="footer-note" id="interpretation"></div>
+          </div>
+        </aside>
+      </div>
+
+      <section
+        class="card"
+        style="margin-top: 16px"
+        aria-labelledby="aboutTitle"
+      >
+        <h2 id="aboutTitle">Model transparency</h2>
+        <p class="muted" style="margin-top: 0">
+          This demo implements a linear regression I fit in SAS on about 17,000
+          players. The dependent variable was
+          <span class="inline code">log_wage</span> and the predictors were age,
+          overall rating, position group, and preferred foot. This is
+          intentionally simplified and is meant to show clean code structure and
+          the ability to connect a statistical model to a working interface, not
+          to be a perfect wage estimator.
+        </p>
+      </section>
+    </div>
+
+    <script>
+      /*
+      FIFA wage prediction model
+
+      SAS regression form
+
+      log_wage_hat =
+        intercept
+        + b_age * age
+        + b_overall * overall_rating
+        + position_group adjustment
+        + preferred_foot adjustment
+
+      wage_hat = exp(log_wage_hat)
+
+      Reference levels
+      position_group reference is Midfielder
+      preferred_foot reference is Right
+    */
+
+      // Keep all numeric coefficients and lookup tables in one place for easy auditing
+      const MODEL = {
+        intercept: -1.051,
+        bAge: -0.0196,
+        bOverall: 0.1484,
+
+        // Effects relative to the reference category Midfielder
+        positionEffects: {
+          Midfielder: 0,
+          Defender: -0.0352,
+          Forward: 0.1304,
+          Goalkeeper: -0.0982,
+        },
+
+        // Effects relative to the reference category Right
+        footEffects: {
+          Right: 0,
+          Left: 0.0147,
+        },
+
+        // Input rules for simple validation
+        constraints: {
+          age: { min: 16, max: 45 },
+          overall: { min: 45, max: 99 },
+        },
+      };
+
+      // Formatting helpers for recruiter friendly output
+      const euroFormatter = new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 0,
+      });
+
+      const numberFormatter = new Intl.NumberFormat(undefined, {
+        maximumFractionDigits: 3,
+      });
+
+      function clampNumber(value, min, max) {
+        if (Number.isNaN(value)) return min;
+        return Math.min(Math.max(value, min), max);
+      }
+
+      function getPositionAdjustment(positionGroup) {
+        // Map position choice to the correct coefficient adjustment
+        return MODEL.positionEffects[positionGroup] ?? 0;
+      }
+
+      function getFootAdjustment(preferredFoot) {
+        // Map foot choice to the correct coefficient adjustment
+        return MODEL.footEffects[preferredFoot] ?? 0;
+      }
+
+      function predictLogWage(
+        age,
+        overallRating,
+        positionGroup,
+        preferredFoot
+      ) {
+        // Implements the regression equation from SAS
+        const posAdj = getPositionAdjustment(positionGroup);
+        const footAdj = getFootAdjustment(preferredFoot);
+
+        return (
+          MODEL.intercept +
+          MODEL.bAge * age +
+          MODEL.bOverall * overallRating +
+          posAdj +
+          footAdj
+        );
+      }
+
+      function predictWageFromLog(logWageHat) {
+        // Convert log scale prediction back to wage scale
+        return Math.exp(logWageHat);
+      }
+
+      function validateInputs(
+        age,
+        overallRating,
+        positionGroup,
+        preferredFoot
+      ) {
+        const errors = [];
+
+        if (!Number.isFinite(age)) errors.push("Age must be a valid number.");
+        if (!Number.isFinite(overallRating))
+          errors.push("Overall rating must be a valid number.");
+
+        const a = MODEL.constraints.age;
+        const o = MODEL.constraints.overall;
+
+        if (Number.isFinite(age) && (age < a.min || age > a.max)) {
+          errors.push(`Age must be between ${a.min} and ${a.max}.`);
+        }
+
+        if (
+          Number.isFinite(overallRating) &&
+          (overallRating < o.min || overallRating > o.max)
+        ) {
+          errors.push(`Overall rating must be between ${o.min} and ${o.max}.`);
+        }
+
+        if (!(positionGroup in MODEL.positionEffects)) {
+          errors.push("Position group must be one of the listed options.");
+        }
+
+        if (!(preferredFoot in MODEL.footEffects)) {
+          errors.push("Preferred foot must be Left or Right.");
+        }
+
+        return errors;
+      }
+
+      // DOM wiring
+      const ageRange = document.getElementById("ageRange");
+      const ageNumber = document.getElementById("ageNumber");
+      const ratingRange = document.getElementById("ratingRange");
+      const ratingNumber = document.getElementById("ratingNumber");
+      const positionSelect = document.getElementById("positionSelect");
+      const footSelect = document.getElementById("footSelect");
+
+      const predictBtn = document.getElementById("predictBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const errorBox = document.getElementById("errorBox");
+      const emptyState = document.getElementById("emptyState");
+      const resultBlock = document.getElementById("resultBlock");
+
+      const wageBig = document.getElementById("wageBig");
+      const outAge = document.getElementById("outAge");
+      const outRating = document.getElementById("outRating");
+      const outPos = document.getElementById("outPos");
+      const outFoot = document.getElementById("outFoot");
+      const outLog = document.getElementById("outLog");
+      const interpretation = document.getElementById("interpretation");
+
+      function syncRangeAndNumber(rangeEl, numberEl) {
+        rangeEl.addEventListener("input", () => {
+          numberEl.value = rangeEl.value;
+        });
+
+        numberEl.addEventListener("input", () => {
+          const min = Number(numberEl.min);
+          const max = Number(numberEl.max);
+          const v = clampNumber(Number(numberEl.value), min, max);
+          numberEl.value = String(v);
+          rangeEl.value = String(v);
+        });
+      }
+
+      syncRangeAndNumber(ageRange, ageNumber);
+      syncRangeAndNumber(ratingRange, ratingNumber);
+
+      function showError(messages) {
+        if (!messages || messages.length === 0) {
+          errorBox.style.display = "none";
+          errorBox.textContent = "";
+          return;
+        }
+        errorBox.style.display = "block";
+        errorBox.textContent = messages.join(" ");
+      }
+
+      function showResults({
+        age,
+        overallRating,
+        positionGroup,
+        preferredFoot,
+        logWageHat,
+        wageHat,
+      }) {
+        emptyState.style.display = "none";
+        resultBlock.style.display = "block";
+
+        wageBig.textContent = euroFormatter.format(Math.round(wageHat));
+
+        outAge.textContent = String(age);
+        outRating.textContent = String(overallRating);
+        outPos.textContent = positionGroup;
+        outFoot.textContent = preferredFoot;
+
+        outLog.textContent = numberFormatter.format(logWageHat);
+
+        interpretation.textContent = `Based on the model a ${age} year old ${positionGroup} with an EA FC 25 rating of ${overallRating} who is ${preferredFoot} footed would on average earn ${euroFormatter.format(
+          Math.round(wageHat)
+        )} per week.`;
+      }
+
+      function getCurrentInputs() {
+        // Convert input strings to numbers so math is reliable
+        const age = Number(ageNumber.value);
+        const overallRating = Number(ratingNumber.value);
+        const positionGroup = positionSelect.value;
+        const preferredFoot = footSelect.value;
+
+        return { age, overallRating, positionGroup, preferredFoot };
+      }
+
+      predictBtn.addEventListener("click", () => {
+        const { age, overallRating, positionGroup, preferredFoot } =
+          getCurrentInputs();
+
+        const errors = validateInputs(
+          age,
+          overallRating,
+          positionGroup,
+          preferredFoot
+        );
+        if (errors.length > 0) {
+          showError(errors);
+          return;
+        }
+        showError([]);
+
+        const logWageHat = predictLogWage(
+          age,
+          overallRating,
+          positionGroup,
+          preferredFoot
+        );
+        const wageHat = predictWageFromLog(logWageHat);
+
+        showResults({
+          age,
+          overallRating,
+          positionGroup,
+          preferredFoot,
+          logWageHat,
+          wageHat,
+        });
+      });
+
+      resetBtn.addEventListener("click", () => {
+        ageRange.value = "24";
+        ageNumber.value = "24";
+        ratingRange.value = "75";
+        ratingNumber.value = "75";
+        positionSelect.value = "Midfielder";
+        footSelect.value = "Right";
+
+        showError([]);
+        resultBlock.style.display = "none";
+        emptyState.style.display = "block";
+      });
+    </script>
+  </body>
+</html>

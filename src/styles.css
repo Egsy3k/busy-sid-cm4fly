@@ -1,0 +1,89 @@
+:root {
+  --bg: #0b0c0f;
+  --card: #13151a;
+  --text: #e6e7ea;
+  --muted: #9aa0a6;
+  --accent: #4e79a7;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+.wrap {
+  max-width: 1040px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.dek {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 16px 0;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.controls {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 12px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+}
+select,
+input {
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  gap: 12px;
+}
+.pred {
+  margin-top: 10px;
+  font-size: 18px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.pred strong {
+  color: var(--accent);
+  font-size: 22px;
+}
+.caption {
+  color: var(--muted);
+  margin-top: 6px;
+}
+.foot {
+  color: var(--muted);
+  margin: 24px 0;
+  font-size: 13px;
+}

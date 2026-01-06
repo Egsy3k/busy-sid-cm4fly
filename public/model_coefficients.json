@@ -1,0 +1,10 @@
+[
+  { "term": "Intercept", "estimate": -1.098985738 },
+  { "term": "age", "estimate": 0.018965878 },
+  { "term": "overall_rating", "estimate": 0.014886625 },
+  { "term": "position_group_Defender", "estimate": 0.149872365 },
+  { "term": "position_group_Forward", "estimate": 0.150611086 },
+  { "term": "position_group_Goalkeeper", "estimate": 0.211666068 },
+  { "term": "preferred_foot_Left", "estimate": 0.011705904 },
+  { "term": "preferred_foot_Right", "estimate": 0 }
+]
